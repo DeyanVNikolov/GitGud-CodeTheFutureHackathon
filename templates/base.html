@@ -1,0 +1,230 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/samsung-sans-4');
+
+        :root {
+            --pistachio: #8ed081;
+            --celadon: #B4D2BA;
+            --vanilla: #dce2aa;
+            --copper: #B57F50;
+            --ebony: #4B543B;
+        }
+
+        body {
+            background: #F3E5AB; background: linear-gradient(to bottom, #F3E5AB 0%, #E4D69C 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #F3E5AB), color-stop(100%, #E4D69C)); background: -webkit-linear-gradient(top, #F3E5AB 0%, #E4D69C 100%); background: -moz-linear-gradient(top, #F3E5AB 0%, #E4D69C 100%); background: -o-linear-gradient(top, #F3E5AB 0%, #E4D69C 100%); background: -ms-linear-gradient(top, #F3E5AB 0%, #E4D69C 100%); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F3E5AB', endColorstr='#E4D69C', GradientType=0); border: 1px solid #D5C78D; box-shadow: inset 0 1px 0 #FFF4BA; -webkit-box-shadow: inset 0 1px 0 #FFF4BA; -moz-box-shadow: inset 0 1px 0 #FFF4BA;
+        }
+
+        /* Navbar enhancements */
+        .navbar {
+            display: flex;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: 0.3s ease;
+            background-color: white;
+        }
+        .navbar-item:hover {
+            background-color: rgba(142, 208, 129, 0.58);
+        }
+
+        .navbar-item {
+            color: var(--ebony);
+        }
+
+        .navbar-brand .navbar-item {
+            font-weight: bold;
+        }
+
+        /* Adjust profile dropdown alignment */
+        .navbar-dropdown {
+            min-width: 180px;
+        }
+
+        #map {
+            width: 500px;
+            height: 400px;
+            margin: 20px auto;
+            border: 1px solid var(--ebony);
+            background: none;
+        }
+
+        .is-pistachio {
+            background-color: var(--pistachio);
+            border-color: var(--pistachio);
+            color: white;
+        }
+
+        .button.is-pistachio:hover {
+            background-color: #6aaa63;
+            border-color: #6aaa63;
+        }
+
+        .is-food {
+            background-color: #F0A202;
+            border-color: #F0A202;
+            color: white;
+        }
+
+        .button.is-food:hover {
+            background-color: #CD8B00FF;
+            border-color: #CD8B00FF;
+        }
+
+        .m-icon {
+            margin-right: 8px
+        }
+    </style>
+</head>
+<body>
+<div style="padding-top: 32px"></div>
+<nav class="navbar" role="navigation" aria-label="main navigation" id="navbar">
+    <div class="navbar-brand">
+        <!-- Home Button -->
+        <a class="navbar-item" href="/">
+            <img src="{% static "/image/logo-green-nobg.png" %}">
+        </a>
+        <a class="navbar-item" href="/dashboard/">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span>Dashboard</span>
+        </a>
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMain">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div id="navbarMain" class="navbar-menu">
+        <div class="navbar-start">
+            <!-- Add more navbar items here if needed -->
+        </div>
+        <div class="navbar-end">
+            {% if request.user.is_authenticated %}
+            <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link">
+                    <img style="border-radius: 15px;" class="is-rounded" onerror="this.src='/static/image/blank-profile.webp'" src="/static/image/pfp/{{ request.user.id }}.jpeg" alt="Profile">
+                    <span>Account</span>
+                </a>
+                <div class="navbar-dropdown is-right">
+                    <a class="navbar-item button" href="/profile">
+                        <span class="icon"><i class="fas fa-user"></i></span>
+                        <span>Profile</span>
+                    </a>
+                    <hr class="navbar-divider">
+                    <a class="navbar-item button is-danger" href="/accounts/logout/">
+                        <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a class="navbar-item" href="/accounts/login/">
+                <span class="icon"><i class="fas fa-sign-in-alt"></i></span>
+                <span>Login</span>
+            </a>
+                <a class="navbar-item" href="/accounts/sign-up/">
+                    <span class="icon"><i class="fas fa-user-plus"></i></span>
+                    <span>Sign-up</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+<script>
+    var prevScrollpos = window.scrollY;
+    window.onscroll = function () {
+        var currentScrollPos = window.scrollY;
+        if (prevScrollpos > currentScrollPos) {
+            document.getElementById("navbar").style.top = "0";
+        } else {
+            document.getElementById("navbar").style.top = "-10rem";
+        }
+        if (window.scrollY === 0) {
+            document.getElementById("navbar").style.top = "0";
+        }
+        prevScrollpos = currentScrollPos;
+    }
+</script>
+<br>
+<div class="container">
+{% if messages %}
+    {% for message in messages %}
+
+        {% if message.tags == 'error' %}
+            <article class="message is-danger">
+                <div class="message-header">
+                    <p>Error</p>
+                    <button class="delete" aria-label="delete"
+                            onclick="this.parentElement.parentElement.remove();"></button>
+                </div>
+                <div class="message-body">
+                    {{ message }}
+                </div>
+            </article>
+        {% elif message.tags == "success" %}
+            <article class="message is-success">
+                <div class="message-header">
+                    <p>Success</p>
+                    <button class="delete" aria-label="delete"
+                            onclick="this.parentElement.parentElement.remove();"></button>
+                </div>
+                <div class="message-body">
+                    {{ message }}
+                </div>
+            </article>
+        {% elif message.tags == "warning" %}
+            <article class="message is-warning">
+                <div class="message-header">
+                    <p>Warning</p>
+                    <button class="delete" aria-label="delete"
+                            onclick="this.parentElement.parentElement.remove();"></button>
+                </div>
+                <div class="message-body">
+                    {{ message }}
+                </div>
+            </article>
+        {% endif %}
+    {% endfor %}
+
+{% endif %}
+</div>
+<!-- Page content -->
+{# full height #}
+<div class="container" style="margin-top: 20px; min-height: 100vh;">
+    {% block content %}
+    {% endblock %}
+</div>
+
+
+{% include "footer.html" %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const burger = document.querySelector('.navbar-burger');
+        const menu = document.getElementById(burger.dataset.target);
+
+        burger.addEventListener('click', () => {
+            burger.classList.toggle('is-active');
+            menu.classList.toggle('is-active');
+        });
+    });
+</script>
+</body>
+</html>
